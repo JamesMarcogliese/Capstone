@@ -306,7 +306,7 @@ class FPS_GT511C3(SerialCommander):
         '''
             Initialises the device and gets ready for commands
         '''
-        #self.ChangeBaudRate(BAUD)
+        self.ChangeBaudRate(BAUD)
         delay(0.1)
         cp = Command_Packet('Open',UseSerialDebug=self.UseSerialDebug)
         cp.ParameterFromInt(1)
@@ -377,7 +377,7 @@ class FPS_GT511C3(SerialCommander):
 #                    print 'Changing port baudrate'
 #                self._serial.close()
 #                BAUD = baud
-#                self._serial = connect(BAUD)
+3                self._serial = connect(BAUD)
 #            del rp
 #            del packetbytes
 #        return retval
