@@ -45,13 +45,7 @@ def enrollID():
     lcd.clear()
     fps.SetLED(True)							
     lcd.message('Press finger on\nscanner to check if\nalready enrolled.')
-    while (fps.IsPressFinger() == False):
-        time.sleep(0.1)
-    bret = fps.CaptureFinger(True)
-    if (bret != False):
-        lcd.clear()             # break off into verify def
-        lcd.message('Remove finger.\n')
-    ID = fps.Identify1_N()
+    ID = verify()
     if (ID != 200):
         lcd.clear()
         lcd.message('You are already\nenrolled. Returning\nto main.')
@@ -70,17 +64,43 @@ def enrollID():
     if (bret != False):
         lcd.clear()
         lcd.message('Remove finger.\n')
-		fps.
-    lcd.clear()
-    lcd.message('Press same finger again.\n')
-    lcd.clear()
-    lcd.message('Remove finger.\n')
-    lcd.clear()
-    lcd.message('Press same finger\nyet again.\n')
-    lcd.clear()
-    lcd.message('Remove finger.\n')
-    lcd.clear()
-	fps.SetLED(False)
+        fps.Enroll1()
+        while (fps.IsPressFinger() == True):
+            time.sleep(0.1)
+        lcd.clear()
+        lcd.message('Press same finger again.\n')
+        while (fps.IsPressFinger() == False):
+            time.sleep(0.1)
+        bret = fps.CaptureFinger(True)
+        if (bret != False):
+            lcd.clear()
+            lcd.message('Remove finger.\n')
+            fps.Enroll2()
+            while (fps.IsPressFinger() == True):
+                time.sleep(0.1)
+            lcd.clear()
+            lcd.message('Press same finger\nyet again.\n')
+            while (fps.IsPressFinger() == False):
+                time.sleep(0.1)
+            bret = fps.CaptureFinger(True)
+            if (bret != False):
+                lcd.clear()
+                lcd.message('Remove finger.\n')
+                iret = fps.Enroll3()
+                if (iret == 0):
+                    lcd.clear()
+                    lcd.message('Enrollment\nSuccessful!')
+                else:
+                    lcd.clear()
+                    lcd.message('Enroll failed.\nPlease try again.\n')
+                    time.sleep(3.0)       
+            else:
+                lcd.message('Failed to capture\nthird finger.')  
+        else:
+            lcd.message('Failed to capture\nsecond finger.')
+    else:
+        lcd.message('Failed to capture\nfirst finger.')
+    fps.SetLED(False)
 def encrypt():
     print "encrypt"
 def decrypt():
@@ -88,8 +108,15 @@ def decrypt():
 def deleteID():                
     print "delete" 
 def verify():
+    while (fps.IsPressFinger() == False):
+        time.sleep(0.1)
+    bret = fps.CaptureFinger(False)
+    if (bret != False):
+        lcd.clear()            
+        lcd.message('Remove finger.\n')
+    ID = fps.Identify1_N()
+    return ID
     
-
 #MAIN
 
 while True:
