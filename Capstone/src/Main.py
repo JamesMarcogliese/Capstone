@@ -107,6 +107,10 @@ def decrypt():
     print "decrypt"
 def deleteID():                
     print "delete" 
+    lcd.message('Are you sure that \nyou want to delete\n your ID?')
+    lcd.clear()
+    lcd.message('"*" for Yes and "#" for No
+    ')
 def verify():
     while (fps.IsPressFinger() == False):
         time.sleep(0.1)
