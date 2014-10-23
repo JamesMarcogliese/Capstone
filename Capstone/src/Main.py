@@ -106,17 +106,18 @@ def encrypt():
 def decrypt():
     print "decrypt"
 def deleteID():                
-    print "delete" 
+    lcd.clear() 
+    lcd.message('Place finger on\nscanner to\nverify ID.') #check return on C1R datasheet (200 or 20)
+    uID = verify()
+    if(uID == 200)
+        lcd.clear
+        lcd.message('ID was not found')
+        break
+    
     lcd.message('Delete ID?\n"*" for Yes & "#" for No')
     keyPress = digit()
-    if(keyPress == *)
-        lcd.message('Please verify you ID')
-        uID = verify()
-        if(uID == 200)
-            lcd.message('ID was not found')
-            break
-        else: 
-            DeleteID(uID)
+    if(keyPress == "*") 
+        fps.DeleteID(uID)
     else: 
         lcd.message('Return to Menu')
         break
