@@ -110,10 +110,14 @@ def deleteID():
     lcd.message('Are you sure that \nyou want to delete\n your ID?')
     lcd.clear()
     lcd.message('"*" for Yes and "#" for No')
+<<<<<<< HEAD
     keyPress = digit()
     if(keyPress == *)
         lcd.message('Please verify you ID')
         uID = verify()
+=======
+    if(digit()=='*')
+>>>>>>> origin/master
 def verify():
     while (fps.IsPressFinger() == False):
         time.sleep(0.1)
