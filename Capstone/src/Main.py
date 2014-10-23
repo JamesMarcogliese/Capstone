@@ -28,8 +28,6 @@ lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_c
 
 kp = BBb_GPIO.keypad(columnCount = 3)
 
-ID = 0
-
 def digit(): # Loop while waiting for a keypress
     r = None
     while r == None:
@@ -46,7 +44,7 @@ def enrollID():
     fps.SetLED(True)							
     lcd.message('Press finger on\nscanner to check if\nalready enrolled.')
     ID = verify()
-    if (ID != 200):
+    if (ID != 200 and ID != 20):
         lcd.clear()
         lcd.message('You are already\nenrolled. Returning\nto main.')
         time.sleep(3.0)
@@ -107,19 +105,24 @@ def decrypt():
     print "decrypt"
 def deleteID():                
     lcd.clear() 
-    lcd.message('Place finger on\nscanner to\nverify ID.') #check return on C1R datasheet (200 or 20)
+    lcd.message('Place finger on\nscanner to\nverify ID.') 
     uID = verify()
-    if(uID == 200)
-        lcd.clear
-        lcd.message('ID was not found')
+    lcd.clear()
+    if(uID == 200 or uID == 20)
+        lcd.message('ID was not found!')
+        time.sleep(3.0)
         break
-    
     lcd.message('Delete ID?\n"*" for Yes & "#" for No')
     keyPress = digit()
     if(keyPress == "*") 
         fps.DeleteID(uID)
+        lcd.clear()
+        lcd.message('ID has been deleted!')
+        time.sleep(3.0)
+        break
     else: 
-        lcd.message('Return to Menu')
+        lcd.message('Returning to Menu.')
+        time.sleep(3.0)
         break
 
 def verify():
