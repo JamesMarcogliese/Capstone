@@ -107,17 +107,20 @@ def decrypt():
     print "decrypt"
 def deleteID():                
     print "delete" 
-    lcd.message('Are you sure that \nyou want to delete\n your ID?')
-    lcd.clear()
-    lcd.message('"*" for Yes and "#" for No')
-<<<<<<< HEAD
+    lcd.message('Delete ID?\n"*" for Yes & "#" for No')
     keyPress = digit()
     if(keyPress == *)
         lcd.message('Please verify you ID')
         uID = verify()
-=======
-    if(digit()=='*')
->>>>>>> origin/master
+        if(uID == 200)
+            lcd.message('ID was not found')
+            break
+        else: 
+            DeleteID(uID)
+    else: 
+        lcd.message('Return to Menu')
+        break
+
 def verify():
     while (fps.IsPressFinger() == False):
         time.sleep(0.1)
