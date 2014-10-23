@@ -99,22 +99,25 @@ def enrollID():
     else:
         lcd.message('Failed to capture\nfirst finger.')
     fps.SetLED(False)
+    
 def encrypt():
     print "encrypt"
+    
 def decrypt():
     print "decrypt"
+    
 def deleteID():                
     lcd.clear() 
     lcd.message('Place finger on\nscanner to\nverify ID.') 
     uID = verify()
     lcd.clear()
-    if(uID == 200 or uID == 20)
+    if(uID == 200 or uID == 20):
         lcd.message('ID was not found!')
         time.sleep(3.0)
         break
     lcd.message('Delete ID?\n"*" for Yes & "#" for No')
     keyPress = digit()
-    if(keyPress == "*") 
+    if(keyPress == "*"):
         fps.DeleteID(uID)
         lcd.clear()
         lcd.message('ID has been deleted!')
