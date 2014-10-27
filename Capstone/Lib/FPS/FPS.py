@@ -29,7 +29,7 @@ def serial_ports():
             _serial_ports = []
     else:
         # unix
-        _serial_ports = ["/dev/ttyO4"]
+        _serial_ports = ["/dev/ttyO2"]
     return _serial_ports
            
 def devices(index=None):
@@ -43,7 +43,7 @@ def devices(index=None):
 if os.name == 'nt':
     DEVICE_NAME = 'COM3'
 else:
-    DEVICE_NAME = '/dev/ttyO4'  #default device to use
+    DEVICE_NAME = '/dev/ttyO2'  #default device to use
 
 def isFingerPrintConnected():
     '''
@@ -276,7 +276,7 @@ def connect(baud=None):
     if baud is None:
         baud=9600
     if isFingerPrintConnected():
-        _ser = serial.Serial(DEVICE_NAME,baudrate=baud,timeout=10000)
+        _ser = serial.Serial(DEVICE_NAME,baudrate=baud)
         if not _ser.isOpen():
             _ser.open()
     return _ser
@@ -355,32 +355,32 @@ class FPS_GT511C3(SerialCommander):
         del packetbytes
         return retval
     
-#    def ChangeBaudRate(self,baud):
-#        '''
-#             Changes the baud rate of the connection
-#             Parameter: 9600 - 115200
-#             Returns: True if success, false if invalid baud
-#             NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
-#        '''
-#        retval = False
-#        if baud <> self._serial.getBaudrate():
-#            cp = Command_Packet('ChangeBaudrate',UseSerialDebug=self.UseSerialDebug)
-#            cp.ParameterFromInt(baud)
-#            packetbytes = cp.GetPacketBytes()
-#            self.SendCommand(packetbytes, 12)
-#            delay(0.5)
-#            rp = self.GetResponse()
-#            delay(0.5)
-#            retval = rp.ACK
-#            if retval:
-#                if self.UseSerialDebug:
-#                    print 'Changing port baudrate'
-#                self._serial.close()
-#                BAUD = baud
-#                self._serial = connect(BAUD)
-#            del rp
-#            del packetbytes
-#        return retval
+    def ChangeBaudRate(self,baud):
+        '''
+             Changes the baud rate of the connection
+             Parameter: 9600 - 115200
+             Returns: True if success, false if invalid baud
+             NOTE: Untested (don't have a logic level changer and a voltage divider is too slow)
+        '''
+        retval = False
+        if baud <> self._serial.getBaudrate():
+            cp = Command_Packet('ChangeBaudrate',UseSerialDebug=self.UseSerialDebug)
+            cp.ParameterFromInt(baud)
+            packetbytes = cp.GetPacketBytes()
+            self.SendCommand(packetbytes, 12)
+            delay(0.5)
+            rp = self.GetResponse()
+            delay(0.5)
+            retval = rp.ACK
+            if retval:
+                if self.UseSerialDebug:
+                    print 'Changing port baudrate'
+                self._serial.close()
+                BAUD = baud
+                self._serial = connect(BAUD)
+            del rp
+            del packetbytes
+        return retval
     
     def GetEnrollCount(self):
         '''
@@ -462,7 +462,7 @@ class FPS_GT511C3(SerialCommander):
         del packetbytes
         rp = self.GetResponse()
         retval = rp.IntFromParameter()
-        retval = 3 if retval < 200 else 0
+        retval = 3 if retval < 20 else 0
         if not rp.ACK:
             if rp.Error == rp.errors['NACK_ENROLL_FAILED']:
                 retval = 1
@@ -486,7 +486,7 @@ class FPS_GT511C3(SerialCommander):
         del packetbytes
         rp = self.GetResponse()
         retval = rp.IntFromParameter()
-        retval = 3 if retval < 200 else 0
+        retval = 3 if retval < 20 else 0
         if not rp.ACK:
             if rp.Error == rp.errors['NACK_ENROLL_FAILED']:
                 retval = 1
@@ -512,7 +512,7 @@ class FPS_GT511C3(SerialCommander):
         del packetbytes
         rp = self.GetResponse()
         retval = rp.IntFromParameter()
-        retval = 3 if retval < 200 else 0
+        retval = 3 if retval < 20 else 0
         if not rp.ACK:
             if rp.Error == rp.errors['NACK_ENROLL_FAILED']:
                 retval = 1
@@ -530,11 +530,13 @@ class FPS_GT511C3(SerialCommander):
         packetbytes = cp.GetPacketBytes()
         self.SendCommand(packetbytes, 12)
         rp = self.GetResponse()
+        retval = False
         pval = rp.ParameterBytes[0]
         pval += rp.ParameterBytes[1]
         pval += rp.ParameterBytes[2]
         pval += rp.ParameterBytes[3]
-        retval = True if pval == 0 else False
+        if (pval == 0):
+            retval = True
         del rp
         del packetbytes
         del cp
@@ -603,16 +605,16 @@ class FPS_GT511C3(SerialCommander):
         '''
              Checks the currently pressed finger against all enrolled fingerprints
              Returns:
-                0-199: Verified against the specified ID (found, and here is the ID number)
-                200: Failed to find the fingerprint in the database
+                0-19: Verified against the specified ID (found, and here is the ID number)
+                20: Failed to find the fingerprint in the database
         '''
         cp = Command_Packet('Identify1_N',UseSerialDebug=self.UseSerialDebug)
         packetbytes = cp.GetPacketBytes()
         self.SendCommand(packetbytes, 12)
         rp = self.GetResponse()
         retval = rp.IntFromParameter()
-        if retval > 200:
-            retval = 200
+        if retval > 20:
+            retval = 20
         del rp
         del packetbytes
         del cp
@@ -741,17 +743,17 @@ class FPS_GT511C3(SerialCommander):
                 print repr(bytes(cmd))[1:-1]
         else:
             if self.UseSerialDebug:
-                print 'Unable to write to %s' % DEVICE_NAME
+                print 'No es posible escribir en %s' % DEVICE_NAME
     
     def GetResponse(self):
         '''
         Gets the response to the command from the software serial channel (and waits for it)
         '''
-        interval = 0.1
+        interval = 0.7
         delay(interval)
         if self._serial is None:
             rp = Response_Packet()
-            print 'Unable to read from: %s' % DEVICE_NAME
+            print 'No es posible leer desde: %s' % DEVICE_NAME
         else:
             r = bytearray(self._serial.read(self._serial.inWaiting()))
             rp = Response_Packet(r,self.UseSerialDebug)

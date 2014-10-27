@@ -34,44 +34,48 @@ def digit(): # Loop while waiting for a keypress
 
 def enrollID():
     fps.UseSerialDebug = True
+    lcd.clear()
     if (fps.GetEnrollCount() == 19):
         lcd.message('Device at maximum\ncapacity. Please\ndelete users.')
         time.sleep(5.0)
         return
-    lcd.clear()
     fps.SetLED(True)							
     lcd.message('Press finger on\nscanner to check if\nalready enrolled.')
     ID = verify()
-    if (ID != 200 and ID != 20):
+    if (ID != 20):
         lcd.clear()
         lcd.message('You are already\nenrolled. Returning\nto main.')
         time.sleep(5.0)
         return
     else:
-        for i in range(0,19):
+        lcd.clear()
+        lcd.message('ID not found!')
+        for i in range(1,19):
             if (fps.CheckEnrolled(i) == False):
-                ID = i		  
+                ID = i
+                break	
+    lcd.clear()
+    time.sleep(5)	  
     lcd.message('Press finger to\nEnroll.')
     fps.EnrollStart(ID)
     while (fps.IsPressFinger() == False):
         time.sleep(1)
     bret = fps.CaptureFinger(True)
-    iret = 0
     if (bret != False):
         lcd.clear()
         lcd.message('Remove finger.\n')
-        fps.Enroll1()
+        num = fps.Enroll1()
         while (fps.IsPressFinger() == True):
             time.sleep(1)
         lcd.clear()
-        lcd.message('Press same finger again.\n')
+        lcd.message('Press same finger\n again.')
         while (fps.IsPressFinger() == False):
             time.sleep(1)
         bret = fps.CaptureFinger(True)
         if (bret != False):
             lcd.clear()
             lcd.message('Remove finger.\n')
-            fps.Enroll2()
+            num = fps.Enroll2()
             while (fps.IsPressFinger() == True):
                 time.sleep(1)
             lcd.clear()
@@ -82,20 +86,22 @@ def enrollID():
             if (bret != False):
                 lcd.clear()
                 lcd.message('Remove finger.\n')
+                time.sleep(3.0)
                 iret = fps.Enroll3()
                 if (iret == 0):
                     lcd.clear()
                     lcd.message('Enrollment\nSuccessful!')
+                    time.sleep(5)
                 else:
                     lcd.clear()
                     lcd.message('Enroll failed.\nPlease try again.\n')
                     time.sleep(5.0)       
             else:
-                lcd.message('Failed to capture\nthird finger.')  
+                print "Failed to capture third finger."
         else:
-            lcd.message('Failed to capture\nsecond finger.')
+            print "Failed to capture second finger."
     else:
-        lcd.message('Failed to capture\nfirst finger.')
+        print "Failed to capture first finger."
     
 def encrypt():
     print "encrypt"
@@ -108,12 +114,13 @@ def deleteID():
     lcd.clear() 
     lcd.message('Place finger on\nscanner to\nverify ID.') 
     uID = verify()
+    print uID
     lcd.clear()
     if(uID == 200 or uID == 20):
         lcd.message('ID was not found!')
         time.sleep(5.0)
         return
-    lcd.message('Delete ID?\n"*" for Yes & "#" for No')
+    lcd.message('ID was found!\nDelete ID?\n"*" for Yes\n"#" for No')
     keyPress = digit()
     if(keyPress == "*"):
         fps.DeleteID(uID)
@@ -122,6 +129,7 @@ def deleteID():
         time.sleep(5.0)
         return
     else: 
+        lcd.clear()
         lcd.message('Returning to Menu.')
         time.sleep(5.0)
         return
@@ -134,6 +142,7 @@ def verify():
         lcd.clear()            
         lcd.message('Remove finger.\n')
     ID = fps.Identify1_N()
+    lcd.clear()
     return ID
     
 #MAIN
