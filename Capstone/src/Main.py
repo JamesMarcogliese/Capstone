@@ -9,7 +9,6 @@ import Adafruit_CharLCD as LCD
 from matrix_keypad import BBb_GPIO
 import Adafruit_BBIO.UART as UART
 import FPS
-import test_raw
 
 UART.setup("UART2")
 fps = FPS.FPS_GT511C3()

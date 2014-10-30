@@ -10,9 +10,9 @@ if __name__ == '__main__':
     fps = FPS.FPS_GT511C3()
     fps.UseSerialDebug = True
    # fps.SetLED = True
-    fps.SetLED()	
-				
-#    Enroll(fps,sys.argv[1])
+   # fps.SetLED()	
+    fps.SetLED(False)				
+   # Enroll(fps,sys.argv[1])
     fps.Close()
     pass
 
