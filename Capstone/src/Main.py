@@ -104,6 +104,9 @@ def enrollID():
     
 def encrypt():
     print "encrypt"
+    ret = subprocess.call(encrypt.sh)
+    if(ret !=0):
+        print "Error with encrypt.sh!"
     
 def decrypt():
     print "decrypt"
