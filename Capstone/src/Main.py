@@ -9,6 +9,7 @@ import Adafruit_CharLCD as LCD
 from matrix_keypad import BBb_GPIO
 import Adafruit_BBIO.UART as UART
 import FPS
+import subprocess
 
 UART.setup("UART2")
 fps = FPS.FPS_GT511C3()
@@ -103,12 +104,14 @@ def enrollID():
         print "Failed to capture first finger."
     
 def encrypt():
-    ret = subprocess.call(encrypt.sh)
+    ret = subprocess.call("./encrypt.sh")
     if(ret !=0):
         print "Error with encrypt.sh!"
     
 def decrypt():
-    print "decrypt"
+    ret = subprocess.call("./decrypt.sh")
+    if(ret !=0):
+        print "Error with decrypt.sh!"
     
 def deleteID():
     fps.SetLED(True)            

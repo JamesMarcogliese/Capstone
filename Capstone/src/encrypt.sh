@@ -8,7 +8,7 @@ if [ $? -ne 0 ]; then               			#Check if mount was successful
     exit
 fi
 
-if [ -n "$(find /media/usb0 -type f -name "vol")" ] 	#Check if volume already exists
+if [ -n "$(find /media/usb0 -type f -name "pudeVol")" ] 	#Check if volume already exists
 then  
     echo "Encrypted volume already exists!"
     exit
@@ -20,7 +20,7 @@ mv /media/usb0/* /media/sdcard
 usbsize="$(blockdev --getsize64 /dev/sda1)" 		#Calculate usb size (total size - 20Mb) then insert it into the below vol creation command 
 volsize=$(( USBSIZE - 20000000 ))
 
-truecrypt -t --volume-type=Normal -c /media/usb0/vol.tc --size=$volsize --encryption=AES --hash=SHA-1 --password=password --filesystem=AUTO -k "" --random-source=/dev/urandom --quick #Create TC volume
+truecrypt -t --volume-type=Normal -c /media/usb0/pudeVol.tc --size=$volsize --encryption=AES --hash=SHA-1 --password=password --filesystem=AUTO -k "" --random-source=/dev/urandom --quick #Create TC volume
 
 truecrypt -t /media/usb0/Vol.tc /home/ubuntu/bin/Vol 	#Mount TC volume
 
