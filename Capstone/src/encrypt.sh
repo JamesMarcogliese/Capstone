@@ -1,25 +1,35 @@
 #!/bin/sh
 
-pmount /dev/sda1 /media/usb0        #mounts USB
+pmount /dev/sda1 /media/usb0        			#Mounts USB
+pmount /dev/mmcblk0p1 /media/sdcard			#Mount SD
 
-if [ $? -ne 0 ]; then               #check if mount was successful
+if [ $? -ne 0 ]; then               			#Check if mount was successful
     echo "Mounting Failed!"
     exit
 fi
 
-if [ -n "$(find /media/usb0 -type f -name "vol")" ] #check if col already exists
+if [ -n "$(find /media/usb0 -type f -name "vol")" ] 	#Check if volume already exists
 then  
     echo "Encrypted volume already exists!"
     exit
 fi
 
-#move files to microSD
-#calculate usb size (total size - 20Mb) then insert it into the below command under --size
-truecrypt -t --volume-type=Normal -c /media/usb0/vol.tc --size=500000000 --encryption=AES --hash=SHA-1 --password=password --filesystem=AUTO -k "" --random-source=/dev/urandom --quick 
+shopt -s dotglob                                        #Move files to microSD (includes hidden files)
+mv /media/usb0/* /media/sdcard  				
 
-truecrypt -t /media/usb0/Vol.tc /home/ubuntu/bin/Vol #Mount TC volume
-#Move all files back
-truecrypt -t -d /home/ubuntu/bin/Vol #unmounts TC volume
-pumount /media/usb0 #unmounts USB
+usbsize="$(blockdev --getsize64 /dev/sda1)" 		#Calculate usb size (total size - 20Mb) then insert it into the below vol creation command 
+volsize=$(( USBSIZE - 20000000 ))
 
+truecrypt -t --volume-type=Normal -c /media/usb0/vol.tc --size=$volsize --encryption=AES --hash=SHA-1 --password=password --filesystem=AUTO -k "" --random-source=/dev/urandom --quick #Create TC volume
+
+truecrypt -t /media/usb0/Vol.tc /home/ubuntu/bin/Vol 	#Mount TC volume
+
+mv /media/sdcard/* /home/ubuntu/bin/Vol			#Move all files back onto encrypted volume
+
+truecrypt -t -d /home/ubuntu/bin/Vol 			#Unmounts TC volume
+
+#Moves accessibility scripts onto USB
+
+pumount /media/usb0 					#Unmount USB
+pumount /media/sdcard					#Unmount SD
 
