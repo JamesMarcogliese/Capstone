@@ -104,11 +104,21 @@ def enrollID():
         print "Failed to capture first finger."
     
 def encrypt():
+    fps.SetLED(True)            
+    lcd.clear() 
+    lcd.message('Place finger on\nscanner to\nverify ID.') 
+    uID = verify()
+
     ret = subprocess.call("./encrypt.sh")
     if(ret !=0):
         print "Error with encrypt.sh!"
     
 def decrypt():
+    fps.SetLED(True)            
+    lcd.clear() 
+    lcd.message('Place finger on\nscanner to\nverify ID.') 
+    uID = verify()
+
     ret = subprocess.call("./decrypt.sh")
     if(ret !=0):
         print "Error with decrypt.sh!"

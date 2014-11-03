@@ -1,10 +1,15 @@
 #!/bin/sh
 
 pmount /dev/sda1 /media/usb0        				#Mounts USB
-pmount /dev/mmcblk0p1 /media/sdcard				#Mount SD
 
 if [ $? -ne 0 ]; then               				#Check if mount was successful
     echo "Mounting Failed!"
+    exit
+fi
+
+pmount /dev/mmcblk0p1 /media/sdcard				#Mount SD
+if [ $? -ne 0 ]; then               				#Check if mount was successful
+    echo "SDcard Mounting Failed!"
     exit
 fi
 
