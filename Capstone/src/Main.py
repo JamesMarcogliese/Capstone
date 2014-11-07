@@ -63,7 +63,7 @@ def enrollID():
                 uID = i
                 break	
     lcd.clear()
-    time.sleep(5)	  
+    time.sleep(3)	  
     lcd.message('Press finger to\nEnroll.')
     status = fps.EnrollStart(uID)
     if(status != 0):
@@ -82,7 +82,7 @@ def enrollID():
         while (fps.IsPressFinger() == True):
             time.sleep(1)
         lcd.clear()
-        lcd.message('Press same finger\n again.')
+        lcd.message('Press same finger\nagain.')
         while (fps.IsPressFinger() == False):
             time.sleep(1)
         bret = fps.CaptureFinger(True)
@@ -107,7 +107,7 @@ def enrollID():
                     lcd.message('Enrollment\nSuccessful!')
                     pwd = random.randrange(10000000, 99999999)
                     try:
-                        cursor.execute('INSERT INTO Users(UID, PASSWORD) VALUES(?,?)', (uID, pwd))
+                        cursor.execute('INSERT INTO Users(ID, PASSWORD) VALUES(?,?)', (uID, pwd))
                         db.commit() 
                     except Exception as e:
                         db.rollback()
@@ -161,50 +161,51 @@ def decrypt():
 def deleteID():
     fps.SetLED(True)            
     lcd.clear() 
-    lcd.message('Place finger on\nscanner to\nverify ID.') 
+    lcd.message('Place finger and\nhold on scanner to\nverify ID.') 
     uID = verify()                                                              #Checks ID
     print uID
     lcd.clear()
     if(uID == 200 or uID == 20):
         lcd.message('ID was not found!')
-        time.sleep(5.0)
+        time.sleep(3.0)
         return
     lcd.message('ID was found!\nDelete ID?\n"*" for Yes\n"#" for No')
     keyPress = digit()
     if(keyPress != "*"):                                                        #Any other response will redirect user to Main
         lcd.clear()
         lcd.message('Returning to Menu.')
-        time.sleep(5.0)
-        return
-    elif(keyPress == "*"):
+        time.sleep(3.0)
+        returnt
+    else:
+        time.sleep(3.0)
         lcd.clear()
         lcd.message('Are you sure?\n"*" for Yes\n"#" for No')
         keyPress = digit()
-        if(keyPress == "*"):
-            status = fps.DeleteID(uID)
-            if (status == True):
-                try:
-                    cursor.execute('DELETE FROM Users WHERE UID = ?', (uID))           #DB deletes user
-                    db.commit()
-                except Exception as e:
-                    db.rollback()
-                    print e
-                    print "DB Delete action failed!"
-                lcd.clear()
-                lcd.message('ID has been deleted!')
-                time.sleep(5.0)
-                return
-            else: 
-                print "Error deleting ID!"
-                lcd.clear()
-                lcd.message('Error deleting ID!\nAction aborted!')
-                time.sleep(5.0)
-                return
-        else: 
+    if(keyPress == "*"):
+        status = fps.DeleteID(uID)
+        if (status == True):
+            try:
+                cursor.execute('DELETE FROM Users WHERE ID = ?', (uID,))           #DB deletes user
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                print e
+                print "DB Delete action failed!"
             lcd.clear()
-            lcd.message('Returning to Menu.')
+            lcd.message('ID has been deleted!')
             time.sleep(5.0)
             return
+        else: 
+            print "Error deleting ID!"
+            lcd.clear()
+            lcd.message('Error deleting ID!\nAction aborted!')
+            time.sleep(5.0)
+            return
+    else: 
+        lcd.clear()
+        lcd.message('Returning to Menu.')
+        time.sleep(5.0)
+        return
         
 def checkPwd():
     fps.SetLED(True)            
@@ -220,10 +221,13 @@ def checkPwd():
     lcd.clear() 
     lcd.message('ID found!\nPassword will be\ndisplayed for 8s.') 
     time.sleep(5.0)
-    cursor.execute('SELECT PASSWORD FROM Users WHERE UID = ?', (uID))             #Retrieves password from DB
+    cursor.execute('SELECT Password FROM Users WHERE ID = ?',(uID,))             #Retrieves password from DB
     pwd = cursor.fetchone()
+    newpwd = str(pwd)
     lcd.clear()
-    lcd.message(pwd)
+    print pwd
+    lcd.message('Password is:\n')
+    lcd.message(newpwd[3:11])
     del pwd
     time.sleep(8.0)
     return

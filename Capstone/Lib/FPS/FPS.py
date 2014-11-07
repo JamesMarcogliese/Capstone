@@ -749,7 +749,7 @@ class FPS_GT511C3(SerialCommander):
         '''
         Gets the response to the command from the software serial channel (and waits for it)
         '''
-        interval = 0.7
+        interval = 1
         delay(interval)
         if self._serial is None:
             rp = Response_Packet()
