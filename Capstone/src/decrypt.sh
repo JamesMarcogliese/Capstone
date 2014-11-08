@@ -1,25 +1,24 @@
 #!/bin/sh
 
 pmount /dev/sda1 /media/usb0        				#Mounts USB
-
 if [ $? -ne 0 ]; then               				#Check if mount was successful
     echo "Mounting Failed!"
-    exit
+    return 1
 fi
 
 pmount /dev/mmcblk0p1 /media/sdcard				#Mount SD
 if [ $? -ne 0 ]; then               				#Check if mount was successful
     echo "SDcard Mounting Failed!"
-    exit
+    return 2
 fi
 
 if [ -z "$(find /media/usb0 -type f -name "pudeVol")" ] 	#Check if volume already exists
 then  
     echo "Encrypted volume not found!"
-    exit
+    return 3
 fi
 								#Mounts TC volume
-truecrypt -t /media/usb0/pudeVol /home/ubuntu/bin/pudeVol --password=password -k "" --protect-hidden=no 
+truecrypt -t /media/usb0/pudeVol /home/ubuntu/bin/pudeVol --password=$password -k "" --protect-hidden=no 
 
 shopt -s dotglob                                        	#Move files out from volume to microSD (includes hidden files)
 mv /home/ubuntu/bin/pudeVol/* /media/sdcard

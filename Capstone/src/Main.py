@@ -12,6 +12,8 @@ import FPS
 import subprocess
 import sqlite3
 import random
+import os
+import threading
 
 try:
     db = sqlite3.connect('Pude.db')
@@ -21,20 +23,34 @@ except Exception as e:
     
 UART.setup("UART2")
 fps = FPS.FPS_GT511C3()
-lcd_rs        = 'P8_8'
-lcd_en        = 'P8_10'
-lcd_d4        = 'P8_18'
-lcd_d5        = 'P8_16'
-lcd_d6        = 'P8_14'
-lcd_d7        = 'P8_12'
+lcd_rs = 'P8_8'
+lcd_en = 'P8_10'
+lcd_d4 = 'P8_18'
+lcd_d5 = 'P8_16'
+lcd_d6 = 'P8_14'
+lcd_d7 = 'P8_12'
 lcd_backlight = 'P8_7'
 lcd_columns = 20
-lcd_rows    = 4
+lcd_rows = 4
 lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows, lcd_backlight)
 
-kp = BBb_GPIO.keypad(columnCount = 3)
+kp = BBb_GPIO.keypad(columnCount=3)
 
-def digit():                                                                # Loop while waiting for a keypress
+class usbProcessingScreen(threading.Thread):
+
+    def __init__(self):
+        super(StoppableThread, self).__init__()
+        self._stop = threading.Event()
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.isSet()
+
+
+
+def digit():  # Loop while waiting for a keypress
     r = None
     while r == None:
         r = kp.getKey()
@@ -48,7 +64,7 @@ def enrollID():
         time.sleep(5.0)
         return
     fps.SetLED(True)							
-    lcd.message('Press finger on\nscanner to check if\nalready enrolled.')
+    lcd.message('Press and hold\nfinger on scanner to\ncheck if already\nenrolled.')
     uID = verify()
     if (uID != 20):
         lcd.clear()
@@ -58,13 +74,13 @@ def enrollID():
     else:
         lcd.clear()
         lcd.message('ID not found!')
-        for i in range(0,19):
+        for i in range(0, 19):
             if (fps.CheckEnrolled(i) == False):
                 uID = i
                 break	
     lcd.clear()
     time.sleep(3)	  
-    lcd.message('Press finger to\nEnroll.')
+    lcd.message('Press and hold\nfinger to Enroll.')
     status = fps.EnrollStart(uID)
     if(status != 0):
         print "Error starting enrollment!"
@@ -82,7 +98,7 @@ def enrollID():
         while (fps.IsPressFinger() == True):
             time.sleep(1)
         lcd.clear()
-        lcd.message('Press same finger\nagain.')
+        lcd.message('Press and hold\nsame finger again.')
         while (fps.IsPressFinger() == False):
             time.sleep(1)
         bret = fps.CaptureFinger(True)
@@ -93,7 +109,7 @@ def enrollID():
             while (fps.IsPressFinger() == True):
                 time.sleep(1)
             lcd.clear()
-            lcd.message('Press same finger\nyet again.\n')
+            lcd.message('Press and hold\nsame finger yet\nagain.\n')
             while (fps.IsPressFinger() == False):
                 time.sleep(1)
             bret = fps.CaptureFinger(True)
@@ -138,31 +154,105 @@ def enrollID():
         return
     
     
-def encrypt(): #SHOW PASSWORD
+def encrypt():  # SHOW PASSWORD
     fps.SetLED(True)            
     lcd.clear() 
-    lcd.message('Place finger on\nscanner to\nverify ID.') 
-    uID = verify()
-
+    lcd.message('Press and hold\nfinger on scanner to\nverify ID.')
+    uID = verify()  # Checks ID
+    print uID
+    lcd.clear()
+    if(uID == 200 or uID == 20):
+        lcd.message('ID was not found!\nPlease enroll first!')
+        time.sleep(5.0)
+        return
+    lcd.clear()
+    lcd.message('Please insert USB\n to begin.\n"*" when done so.\n"#" to exit.')
+    keyPress = digit()
+    if(keyPress != "*"):  # Any other response will redirect user to Main
+        lcd.clear()
+        lcd.message('Returning to Menu.')
+        time.sleep(3.0)
+        return
+    lcd.clear()
+    lcd.message('Encrypting...')
+    cursor.execute('SELECT Password FROM Users WHERE ID = ?', (uID,))  # Retrieves password from DB
+    pwd = cursor.fetchone()
+    pwd = str(pwd)[3:11]
+    os.environ['password'] = pwd
     ret = subprocess.call("./encrypt.sh")
-    if(ret !=0):
-        print "Error with encrypt.sh!"
+    lcd.clear()
+    if (ret == 0):
+        lcd.message('Encryption complete!\nRemove USB.\n\n"#" to exit.')
+        keyPress = digit()
+        return
+    elif (ret == 1):
+        lcd.message('No USB detected!\nReturning to Main.')
+        time.sleep(5.0)
+        return
+    elif (ret == 2):
+        lcd.message('No storage found!\nReturning to Main.')
+        time.sleep(5.0)
+        return
+    elif (ret == 3):
+        lcd.message('Already encrypted!\nReturning to Main.')
+        time.sleep(5.0)
+        return
+    else:
+        print "Un-handled error!"
+        return
     
 def decrypt():
     fps.SetLED(True)            
     lcd.clear() 
-    lcd.message('Place finger on\nscanner to\nverify ID.') 
-    uID = verify()
-    
+    lcd.message('Press and hold\nfinger on scanner to\nverify ID.') 
+    uID = verify()  # Checks ID
+    print uID
+    lcd.clear()
+    if(uID == 200 or uID == 20):
+        lcd.message('ID was not found!\nPlease enroll first!')
+        time.sleep(5.0)
+        return
+    lcd.clear()
+    lcd.message('Please insert USB\n drive into USB\nslot to begin.\n"*" when done so.')
+    keyPress = digit()
+    if(keyPress != "*"):  # Any other response will redirect user to Main
+        lcd.clear()
+        lcd.message('Returning to Menu.')
+        time.sleep(3.0)
+        return
+    lcd.clear()
+    lcd.message('Decrypting...')
+    cursor.execute('SELECT Password FROM Users WHERE ID = ?', (uID,))  # Retrieves password from DB
+    pwd = cursor.fetchone()
+    pwd = str(pwd)[3:11]
+    os.environ['password'] = pwd
     ret = subprocess.call("./decrypt.sh")
-    if(ret !=0):
-        print "Error with decrypt.sh!"
+    lcd.clear()
+    if (ret == 0):
+        lcd.message('Encryption complete!\nRemove USB.\n\n"#" to exit.')
+        keyPress = digit()
+        return
+    elif (ret == 1):
+        lcd.message('No USB detected!\nReturning to Main.')
+        time.sleep(5.0)
+        return
+    elif (ret == 2):
+        lcd.message('No storage found!\nReturning to Main.')
+        time.sleep(5.0)
+        return
+    elif (ret == 3):
+        lcd.message('USB not encrypted!\nReturning to Main.')
+        time.sleep(5.0)
+        return
+    else:
+        print "Un-handled error!"
+        return
     
 def deleteID():
     fps.SetLED(True)            
     lcd.clear() 
-    lcd.message('Place finger and\nhold on scanner to\nverify ID.') 
-    uID = verify()                                                              #Checks ID
+    lcd.message('Press and hold\nfinger on scanner to\nverify ID.') 
+    uID = verify()  # Checks ID
     print uID
     lcd.clear()
     if(uID == 200 or uID == 20):
@@ -171,11 +261,11 @@ def deleteID():
         return
     lcd.message('ID was found!\nDelete ID?\n"*" for Yes\n"#" for No')
     keyPress = digit()
-    if(keyPress != "*"):                                                        #Any other response will redirect user to Main
+    if(keyPress != "*"):  # Any other response will redirect user to Main
         lcd.clear()
         lcd.message('Returning to Menu.')
         time.sleep(3.0)
-        returnt
+        return
     else:
         time.sleep(3.0)
         lcd.clear()
@@ -185,7 +275,7 @@ def deleteID():
         status = fps.DeleteID(uID)
         if (status == True):
             try:
-                cursor.execute('DELETE FROM Users WHERE ID = ?', (uID,))           #DB deletes user
+                cursor.execute('DELETE FROM Users WHERE ID = ?', (uID,))  # DB deletes user
                 db.commit()
             except Exception as e:
                 db.rollback()
@@ -210,8 +300,8 @@ def deleteID():
 def checkPwd():
     fps.SetLED(True)            
     lcd.clear() 
-    lcd.message('Place finger on\nscanner to\nverify ID.') 
-    uID = verify()                                                              #Checks ID
+    lcd.message('Press and hold\nfinger on scanner to\nverify ID.') 
+    uID = verify()  # Checks ID
     print uID
     lcd.clear()
     if(uID == 200 or uID == 20):
@@ -221,7 +311,7 @@ def checkPwd():
     lcd.clear() 
     lcd.message('ID found!\nPassword will be\ndisplayed for 8s.') 
     time.sleep(5.0)
-    cursor.execute('SELECT Password FROM Users WHERE ID = ?',(uID,))             #Retrieves password from DB
+    cursor.execute('SELECT Password FROM Users WHERE ID = ?', (uID,))  # Retrieves password from DB
     pwd = cursor.fetchone()
     newpwd = str(pwd)
     lcd.clear()
@@ -232,7 +322,7 @@ def checkPwd():
     time.sleep(8.0)
     return
     
-def verify():                                                                   #Generic function to check for ID
+def verify():  # Generic function to check for ID
     while (fps.IsPressFinger() == False):
         time.sleep(1)
     bret = fps.CaptureFinger(False)
@@ -243,7 +333,7 @@ def verify():                                                                   
     lcd.clear()
     return ID
     
-#MAIN
+# MAIN
 
 while True:
     lcd.clear()
@@ -264,4 +354,3 @@ while True:
     elif d1 > 5 or d1 == 0 or d1 == "*" or d1 == "#":
         pass
 
-  
