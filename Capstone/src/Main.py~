@@ -174,7 +174,7 @@ def encrypt():  # SHOW PASSWORD
         time.sleep(3.0)
         return
     lcd.clear()
-    lcd.message('Encrypting...')
+    lcd.message('Encrypting...\nDo NOT remove USB!')
     cursor.execute('SELECT Password FROM Users WHERE ID = ?', (uID,))  # Retrieves password from DB
     pwd = cursor.fetchone()
     pwd = str(pwd)[3:11]
@@ -220,6 +220,8 @@ def decrypt():
         lcd.message('Returning to Menu.')
         time.sleep(3.0)
         return
+    lcd.clear()
+    lcd.message('Decrypting...')
     cursor.execute('SELECT Password FROM Users WHERE ID = ?', (uID,))  # Retrieves password from DB
     pwd = cursor.fetchone()
     pwd = str(pwd)[3:11]
@@ -227,7 +229,7 @@ def decrypt():
     ret = subprocess.call("./decrypt.sh")
     lcd.clear()
     if (ret == 0):
-        lcd.message('Encryption complete!\nRemove USB.\n\n"#" to exit.')
+        lcd.message('Decryption complete!\nRemove USB.\n\n"#" to exit.')
         keyPress = digit()
         return
     elif (ret == 1):

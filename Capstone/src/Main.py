@@ -13,7 +13,6 @@ import subprocess
 import sqlite3
 import random
 import os
-import threading
 
 try:
     db = sqlite3.connect('Pude.db')
@@ -35,20 +34,6 @@ lcd_rows = 4
 lcd = LCD.Adafruit_CharLCD(lcd_rs, lcd_en, lcd_d4, lcd_d5, lcd_d6, lcd_d7, lcd_columns, lcd_rows, lcd_backlight)
 
 kp = BBb_GPIO.keypad(columnCount=3)
-
-class usbProcessingScreen(threading.Thread):
-
-    def __init__(self):
-        super(StoppableThread, self).__init__()
-        self._stop = threading.Event()
-
-    def stop(self):
-        self._stop.set()
-
-    def stopped(self):
-        return self._stop.isSet()
-
-
 
 def digit():  # Loop while waiting for a keypress
     r = None
@@ -174,7 +159,7 @@ def encrypt():  # SHOW PASSWORD
         time.sleep(3.0)
         return
     lcd.clear()
-    lcd.message('Encrypting...')
+    lcd.message('Encrypting...\nDo NOT remove USB!')
     cursor.execute('SELECT Password FROM Users WHERE ID = ?', (uID,))  # Retrieves password from DB
     pwd = cursor.fetchone()
     pwd = str(pwd)[3:11]
@@ -229,7 +214,7 @@ def decrypt():
     ret = subprocess.call("./decrypt.sh")
     lcd.clear()
     if (ret == 0):
-        lcd.message('Encryption complete!\nRemove USB.\n\n"#" to exit.')
+        lcd.message('Decryption complete!\nRemove USB.\n\n"#" to exit.')
         keyPress = digit()
         return
     elif (ret == 1):
