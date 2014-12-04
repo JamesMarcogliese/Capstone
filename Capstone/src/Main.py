@@ -1,3 +1,4 @@
+
 '''
 Created on Aug 24, 2014
 
@@ -15,10 +16,12 @@ import random
 import os
 
 try:
-    db = sqlite3.connect('Pude.db')
+    db = sqlite3.connect('/usr/local/bin/Pude.db')
     cursor = db.cursor()
 except Exception as e:
     print e
+
+ret = subprocess.call("/usr/local/bin/internetTether.sh")
     
 UART.setup("UART2")
 fps = FPS.FPS_GT511C3()
@@ -139,7 +142,7 @@ def enrollID():
         return
     
     
-def encrypt():  # SHOW PASSWORD
+def encrypt():  
     fps.SetLED(True)            
     lcd.clear() 
     lcd.message('Press and hold\nfinger on scanner to\nverify ID.')
@@ -164,7 +167,8 @@ def encrypt():  # SHOW PASSWORD
     pwd = cursor.fetchone()
     pwd = str(pwd)[3:11]
     os.environ['password'] = pwd
-    ret = subprocess.call("./encrypt.sh")
+    os.environ['user'] = str(uID)
+    ret = subprocess.call("/usr/local/bin/encrypt.sh")
     lcd.clear()
     if (ret == 0):
         lcd.message('Encryption complete!\nRemove USB.\n\n"#" to exit.')
@@ -211,7 +215,8 @@ def decrypt():
     pwd = cursor.fetchone()
     pwd = str(pwd)[3:11]
     os.environ['password'] = pwd
-    ret = subprocess.call("./decrypt.sh")
+    os.environ['user'] = str(uID)
+    ret = subprocess.call("/usr/local/bin/decrypt.sh")
     lcd.clear()
     if (ret == 0):
         lcd.message('Decryption complete!\nRemove USB.\n\n"#" to exit.')
@@ -301,8 +306,12 @@ def checkPwd():
     newpwd = str(pwd)
     lcd.clear()
     print pwd
+    newuid = str(uID)
     lcd.message('Password is:\n')
     lcd.message(newpwd[3:11])
+    #lcd.message('\n')
+    lcd.message('\n\nYou are user:\n')
+    lcd.message(newuid)
     del pwd
     time.sleep(8.0)
     return
@@ -317,13 +326,35 @@ def verify():  # Generic function to check for ID
     ID = fps.Identify1_N()
     lcd.clear()
     return ID
-    
+
+def powerOff():
+    lcd.clear() 
+    lcd.message('Powering off...')
+    time.sleep(3.0)
+    ret = subprocess.call("sudo shutdown -P now")
+    return 
+
+def networkCheck():
+    lcd.clear()
+    lcd.message('Testing network...')
+    os.environ['hostAddress'] = "www.google.com"
+    ret = subprocess.call("/usr/local/bin/pingTest.sh")
+    time.sleep(3.0)
+    lcd.clear()
+    time.sleep(3.0)
+    if (ret == 1):
+        lcd.message('Host is alive!')
+        time.sleep(3.0)
+    elif (ret == 0):
+        lcd.message('Cannot connect to\nhost!')
+        time.sleep(3.0)
+    return
 # MAIN
 
 while True:
     lcd.clear()
     fps.SetLED(False)
-    lcd.message('  PUD-E MAIN MENU\n1-Enroll   2-Encrypt\n3-Decrypt  4-Delete\n5-Check Password')
+    lcd.message('  PUD-E MAIN MENU\n1-Enroll   2-Encrypt\n3-Decrypt  4-Delete\n5-Password 6-Exit')
     d1 = digit()
     print d1
     if d1 == 1:
@@ -336,6 +367,10 @@ while True:
         deleteID()
     elif d1 == 5:
         checkPwd()
-    elif d1 > 5 or d1 == 0 or d1 == "*" or d1 == "#":
+    elif d1 == 6:
+        powerOff()
+    elif d1 == 0:
+         networkCheck()
+    elif d1 > 6 or d1 == "*" or d1 == "#":
         pass
 

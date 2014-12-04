@@ -21,19 +21,29 @@ then
     return 3
 fi
 
+timeVal="5"
+status="Decrypting"
+sudo python appUpdate.py $time $status $user
+
 truecrypt -t -m=nokernelcrypto /media/sdcard/pudeVolTemp.tc /media/sdcard/pudeVolTempDir --password=91238913 -k "" --protect-hidden=no --filesystem=ntfs							#Mounts temp storage SD card
 								#Mounts usb TC volume
-truecrypt -t -m=nokernelcrypto /media/usb0/pudeVol.tc /home/ubuntu/bin/pudeVol --password=$password -k "" --protect-hidden=no --filesystem=ntfs
+truecrypt -t -m=nokernelcrypto /media/usb0/dist/pudeVol.tc ~/bin/pudeVol --password=$password -k "" --protect-hidden=no --filesystem=ntfs
 
 shopt -s dotglob                                        	#Move files out from volume to microSD (includes hidden files)
-mv /home/ubuntu/bin/pudeVol/* /media/sdcard/pudeVolTempDir/
+mv ~/bin/pudeVol/* /media/sdcard/pudeVolTempDir/
 
-truecrypt -t -d 						#Unmounts volume
+truecrypt -t -d /media/usb0/dist/pudeVol.tc				#Unmounts volume
 
 rm -rf /media/usb0/*						#Delete all contents of USB (includes encrypted volume and scripts)
 
-mv /media/sdcard/pudeVolTempDir/* /media/usb0/			#Move all files back to USB from SDCARD
+mv /media/sdcard/pudeVolTempDir/* /media/usb0			#Move all files back to USB from SDCARD
+
+truecrypt -t -d							#Unmount SDCARD
 
 pumount /media/usb0 						#Unmount USB
 pumount /media/sdcard						#Unmount SDcard
+
+timeVal2="0"
+status="Decryption Complete"
+sudo python appUpdate.py $time $status $user
 return 0
