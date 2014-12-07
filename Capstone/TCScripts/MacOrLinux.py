@@ -1,3 +1,7 @@
+'''
+Created by James Marcogliese
+james.marcogliese@gmail.com
+'''
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import platform
