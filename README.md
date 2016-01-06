@@ -14,6 +14,6 @@ Folder Contents:
 	Src for BBB - PUDE Progam that runs on boot on the BeagleBone Black.
 	TCScripts - Scripts that are loaded onto the USB drive upon program execution.
 
-
+Please be warned, this repo contains a dump of the resources created for this Capstone project and is not arranged in any way to facilitate reuse by another party.
 
 
